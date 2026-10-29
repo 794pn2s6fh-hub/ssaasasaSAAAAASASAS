@@ -1,0 +1,22 @@
+name: CVE112621Lab
+options:
+  bundleIdPrefix: org.example
+  deploymentTarget:
+    iOS: "16.0"
+targets:
+  CVE112621Lab:
+    type: application
+    platform: iOS
+    sources:
+      - Sources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.example.cve112621lab
+        PRODUCT_NAME: "CVE-2026-112621 Lab"
+        INFOPLIST_KEY_CFBundleDisplayName: "CVE-112621 Lab"
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.developer-tools
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "5.0"
+        IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGNING_ALLOWED: NO
