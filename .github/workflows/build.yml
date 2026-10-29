@@ -1,0 +1,65 @@
+name: Build CVE-2026-112621 Lab
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build unsigned iOS app
+        run: >-
+          xcodebuild
+          -project CVE112621Lab.xcodeproj
+          -scheme CVE112621Lab
+          -configuration Release
+          -sdk iphoneos
+          -derivedDataPath build
+          CODE_SIGNING_ALLOWED=NO
+          build
+
+      - name: Package IPA and generate HEIC test fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p package/Payload out/PoCFixture
+          cp -R "build/Build/Products/Release-iphoneos/CVE-2026-112621 Lab.app" package/Payload/
+          (cd package && /usr/bin/zip -qry ../CVE-2026-112621-Lab.ipa Payload)
+          clang -fobjc-arc \
+            -framework Foundation -framework ImageIO -framework CoreGraphics \
+            -o out/PoCFixture/gen_heic PoCFixture/gen_heic.m
+          out/PoCFixture/gen_heic out/PoCFixture/trigger.heic
+          cp PoCFixture/index.html out/PoCFixture/index.html
+          cp PoCFixture/LICENSE out/PoCFixture/LICENSE
+          cp README.md out/README.md
+          /usr/bin/zip -qry CVE-2026-112621-HEIC-Fixture.zip out
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CVE-2026-112621-Lab-IPA
+          path: CVE-2026-112621-Lab.ipa
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload HEIC fixture artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CVE-2026-112621-HEIC-Fixture
+          path: CVE-2026-112621-HEIC-Fixture.zip
+          if-no-files-found: error
+          retention-days: 14
